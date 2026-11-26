@@ -1,6 +1,6 @@
-"""Aim: Implement polynomial regression.
-Adds BMI squared to model curvature; still linear in coefficients. Degree is fixed in advance, not selected on the test set.
-Run: python polynomial_regression.py
+"""Aim: Implement lasso and ridge regression.
+Lasso adds an L1 penalty and can make coefficients zero; Ridge adds L2 shrinkage. Compare both against an unpenalized baseline using identical splits. Alphas are illustrative, not tuned optima.
+Run: python lasso_and_ridge_regression.py
 """
 
 from pathlib import Path
@@ -8,22 +8,22 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from sklearn.datasets import load_diabetes
+from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split, KFold, cross_validate
 from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler, PolynomialFeatures
-from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression, Lasso, Ridge
 from sklearn.metrics import mean_squared_error, r2_score
 
-# Public diabetes dataset bundled with scikit-learn; target is progression
-# one year after baseline. scaled=False preserves original feature units.
-data = load_diabetes(scaled=False)
-X = data.data[:, [2]]  # BMI only
+# UCI Iris: predict petal width (column 3), never species IDs.
+# Exclude petal width from the input features to avoid target leakage.
+data = load_iris()
+X = data.data[:, :3]
 X_train, X_test, y_train, y_test = train_test_split(
-    X, data.target, test_size=0.2, random_state=42)
-models = {"Polynomial regression degree 2": make_pipeline(PolynomialFeatures(degree=2, include_bias=False), StandardScaler(), LinearRegression())}
+    X, data.data[:, 3], test_size=0.2, random_state=42)
+models = {"Linear baseline": make_pipeline(StandardScaler(), LinearRegression()), "Lasso alpha 1": make_pipeline(StandardScaler(), Lasso(alpha=1.0, max_iter=10000)), "Ridge alpha 10": make_pipeline(StandardScaler(), Ridge(alpha=10.0))}
 cv = KFold(n_splits=5, shuffle=True, random_state=42)
-out = Path(__file__).resolve().parent / "results" / "polynomial_regression"
+out = Path(__file__).resolve().parent / "results" / "lasso_and_ridge_regression"
 out.mkdir(parents=True, exist_ok=True)
 
 for name, model in models.items():
@@ -41,10 +41,10 @@ for name, model in models.items():
     print("First five actual values:", y_test[:5])
     print("First five predictions:", np.round(pred[:5], 2))
     fig, ax = plt.subplots(figsize=(6, 4))
-    ax.scatter(X_test[:, 0], y_test, label="Actual test data", alpha=0.7)
-    grid = np.linspace(X[:, 0].min(), X[:, 0].max(), 200).reshape(-1, 1)
-    ax.plot(grid[:, 0], model.predict(grid), color="red", label="Fitted model")
-    ax.set(xlabel="BMI", ylabel="Disease progression")
+    ax.scatter(y_test, pred, alpha=0.7)
+    bounds = [min(y_test.min(), pred.min()), max(y_test.max(), pred.max())]
+    ax.plot(bounds, bounds, "r--", label="Perfect prediction")
+    ax.set(xlabel="Actual petal width (cm)", ylabel="Predicted petal width (cm)")
     ax.legend()
     ax.set_title(name)
     fig.tight_layout()

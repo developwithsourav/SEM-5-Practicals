@@ -1,5 +1,5 @@
 """Aim: Implement multiple linear regression.
-Fits a linear combination of all ten predictors; multiple means multiple input features.
+Fits a linear combination of three predictors; multiple means three input features.
 Run: python multiple_linear_regression.py
 """
 
@@ -8,19 +8,19 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from sklearn.datasets import load_diabetes
+from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split, KFold, cross_validate
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 
-# Public diabetes dataset bundled with scikit-learn; target is progression
-# one year after baseline. scaled=False preserves original feature units.
-data = load_diabetes(scaled=False)
-X = data.data  # All ten baseline measurements
+# UCI Iris: predict petal width (column 3), never species IDs.
+# Exclude petal width from the input features to avoid target leakage.
+data = load_iris()
+X = data.data[:, :3]  # Other three measurements
 X_train, X_test, y_train, y_test = train_test_split(
-    X, data.target, test_size=0.2, random_state=42)
+    X, data.data[:, 3], test_size=0.2, random_state=42)
 models = {"Multiple linear regression": make_pipeline(StandardScaler(), LinearRegression())}
 cv = KFold(n_splits=5, shuffle=True, random_state=42)
 out = Path(__file__).resolve().parent / "results" / "multiple_linear_regression"
@@ -44,7 +44,7 @@ for name, model in models.items():
     ax.scatter(y_test, pred, alpha=0.7)
     bounds = [min(y_test.min(), pred.min()), max(y_test.max(), pred.max())]
     ax.plot(bounds, bounds, "r--", label="Perfect prediction")
-    ax.set(xlabel="Actual progression", ylabel="Predicted progression")
+    ax.set(xlabel="Actual petal width (cm)", ylabel="Predicted petal width (cm)")
     ax.legend()
     ax.set_title(name)
     fig.tight_layout()

@@ -1,6 +1,6 @@
 """Aim: Cluster Iris observations using K-means with Euclidean distance.
 K-means alternates nearest-centroid assignment and centroid updates.
-Run: python kmeans_clustering.py
+Run: python k_means_clustering.py
 """
 
 from pathlib import Path
@@ -22,7 +22,7 @@ projection = PCA(n_components=2).fit_transform(X)
 
 from sklearn.cluster import KMeans
 
-out = Path(__file__).resolve().parent / "results" / "kmeans_clustering"
+out = Path(__file__).resolve().parent / "results" / "k_means_clustering"
 out.mkdir(parents=True, exist_ok=True)
 ks = list(range(2, 9))
 inertias, silhouettes = [], []

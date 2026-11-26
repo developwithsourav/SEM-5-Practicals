@@ -1,6 +1,6 @@
 """Aim: Perform agglomerative hierarchical clustering and draw a dendrogram.
 Ward linkage merges clusters with the smallest increase in within-cluster SSE.
-Run: python hierarchical_clustering.py
+Run: python agglomerative_hierarchical_clustering.py
 """
 
 from pathlib import Path
@@ -22,7 +22,7 @@ projection = PCA(n_components=2).fit_transform(X)
 
 from scipy.cluster.hierarchy import linkage, dendrogram, cut_tree
 
-out = Path(__file__).resolve().parent / "results" / "hierarchical_clustering"
+out = Path(__file__).resolve().parent / "results" / "agglomerative_hierarchical_clustering"
 out.mkdir(parents=True, exist_ok=True)
 tree = linkage(X, method="ward", metric="euclidean")
 labels = cut_tree(tree, n_clusters=3).ravel()
